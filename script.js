@@ -184,6 +184,7 @@
     timerSubjectSelect: document.getElementById('timerSubjectSelect'),
     timerDisplay: document.getElementById('timerDisplay'),
     timerTotalVal: document.getElementById('timerTotalVal'),
+    timerGoalVal: document.getElementById('timerGoalVal'),
     weekBars: document.getElementById('weekBars'),
     taskSubjectName: document.getElementById('taskSubjectName'),
     taskList: document.getElementById('taskList'),
@@ -1668,6 +1669,13 @@
     var m = Math.floor(sec/60), s = sec%60;
     els.timerDisplay.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
     if(els.timerTotalVal) els.timerTotalVal.textContent = formatHMS(todayTotalSecondsLive());
+    if(els.timerGoalVal){
+      var goalSec = (state.settings.dailyGoalMinutes || 90) * 60;
+      var remainSec = goalSec - todayTotalSecondsLive();
+      var reached = remainSec <= 0;
+      els.timerGoalVal.textContent = reached ? '達成 🎉' : formatHMS(remainSec);
+      els.timerGoalVal.classList.toggle('goal-reached', reached);
+    }
     var barFill = document.getElementById('timerBarFill');
     if(barFill){
       if(timerFreeMode){
