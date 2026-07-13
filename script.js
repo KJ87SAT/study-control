@@ -66,7 +66,18 @@
       return parsed;
     }catch(e){ return defaultState(); }
   }
-  function saveState(){ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+  function saveState(){
+    try{
+      localStorage.setItem(STORE_KEY, JSON.stringify(state));
+    }catch(e){
+      // Storage can fail (quota, private browsing, file:// restrictions in
+      // some browsers). The in-memory state is still updated and rendered
+      // normally — only persistence across reloads is affected — so this
+      // must never throw and silently abort whatever code runs after
+      // saveState() in a click handler (e.g. closing a modal, re-rendering).
+      console.warn('saveState failed:', e);
+    }
+  }
 
   var state = loadState();
   if(!state.selectedSubjectId || !state.subjects.find(function(s){return s.id===state.selectedSubjectId;})){
