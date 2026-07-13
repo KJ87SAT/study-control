@@ -2004,6 +2004,7 @@
     renderWbBadge();
     renderMissionPanel();
     renderFullLog();
+    renderTimerDisplay();
   }
 
   // ---------- init ----------
