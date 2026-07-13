@@ -30,7 +30,7 @@
       sessions: [], // {id, subjectId, date, minutes}
       xp: 0,
       streak: {current:0, longest:0, lastDate:null},
-      settings: {dailyGoalMinutes: 90, sound:true, dailyGoalSetDate: null},
+      settings: {dailyGoalMinutes: null, sound:true, dailyGoalSetDate: null},
       selectedSubjectId: null
     };
   }
@@ -47,7 +47,7 @@
             if(old && old.subjects && old.subjects.length){
               old.workbooks = old.workbooks || [];
               old.workLogs = old.workLogs || [];
-              old.settings = old.settings || {dailyGoalMinutes:90, sound:true, dailyGoalSetDate:null};
+              old.settings = old.settings || {dailyGoalMinutes:null, sound:true, dailyGoalSetDate:null};
               if(old.settings.sound===undefined) old.settings.sound = true;
               if(old.settings.dailyGoalSetDate===undefined) old.settings.dailyGoalSetDate = null;
               return old;
@@ -60,7 +60,7 @@
       if(!parsed.subjects || !parsed.subjects.length) return defaultState();
       if(!parsed.workbooks) parsed.workbooks = [];
       if(!parsed.workLogs) parsed.workLogs = [];
-      if(!parsed.settings) parsed.settings = {dailyGoalMinutes:90, sound:true, dailyGoalSetDate:null};
+      if(!parsed.settings) parsed.settings = {dailyGoalMinutes:null, sound:true, dailyGoalSetDate:null};
       if(parsed.settings.sound===undefined) parsed.settings.sound = true;
       if(parsed.settings.dailyGoalSetDate===undefined) parsed.settings.dailyGoalSetDate = null;
       return parsed;
@@ -367,16 +367,24 @@
   }
 
   function renderGauge(){
-    var goal = state.settings.dailyGoalMinutes || 90;
+    var goal = state.settings.dailyGoalMinutes;
     var today = minutesForDate(todayStr());
-    var pct = Math.max(0, Math.min(100, Math.round((today/goal)*100)));
-    var circumference = 2 * Math.PI * 78;
-    var offset = circumference - (pct/100)*circumference;
-    els.gaugeArc.setAttribute('stroke-dasharray', circumference.toFixed(1));
-    els.gaugeArc.style.transition = 'stroke-dashoffset .6s ease';
-    els.gaugeArc.setAttribute('stroke-dashoffset', offset.toFixed(1));
-    els.gaugeCenterPct.textContent = pct + '%';
-    els.gaugeCenterSub.textContent = today + ' / ' + goal + ' 分';
+    if(!goal){
+      els.gaugeArc.setAttribute('stroke-dasharray', (2*Math.PI*78).toFixed(1));
+      els.gaugeArc.style.transition = 'stroke-dashoffset .6s ease';
+      els.gaugeArc.setAttribute('stroke-dashoffset', (2*Math.PI*78).toFixed(1));
+      els.gaugeCenterPct.textContent = '--%';
+      els.gaugeCenterSub.textContent = '目標未設定';
+    } else {
+      var pct = Math.max(0, Math.min(100, Math.round((today/goal)*100)));
+      var circumference = 2 * Math.PI * 78;
+      var offset = circumference - (pct/100)*circumference;
+      els.gaugeArc.setAttribute('stroke-dasharray', circumference.toFixed(1));
+      els.gaugeArc.style.transition = 'stroke-dashoffset .6s ease';
+      els.gaugeArc.setAttribute('stroke-dashoffset', offset.toFixed(1));
+      els.gaugeCenterPct.textContent = pct + '%';
+      els.gaugeCenterSub.textContent = today + ' / ' + goal + ' 分';
+    }
     els.todayMinNum.textContent = today + '分';
     els.weekMinNum.textContent = weekMinutes() + '分';
     els.totalMinNum.textContent = totalMinutesAll() + '分';
@@ -395,7 +403,7 @@
       col.className = 'week-col' + (isToday ? ' today':'');
       var stack = document.createElement('div');
       stack.className = 'stack';
-      var h = Math.max(2, Math.round((minutesForDate(dateStr)/Math.max(maxVal, state.settings.dailyGoalMinutes))*100));
+      var h = Math.max(2, Math.round((minutesForDate(dateStr)/Math.max(maxVal, state.settings.dailyGoalMinutes || maxVal))*100));
       stack.style.height = h + '%';
       state.subjects.forEach(function(sub){
         var m = minutesForSubjectDate(sub.id, dateStr);
@@ -436,7 +444,7 @@
     var days = [];
     for(var i=n-1;i>=0;i--) days.push(addDays(new Date(), -i));
     var vals = days.map(function(d){ return minutesForDate(isoDate(d)); });
-    var goal = state.settings.dailyGoalMinutes || 90;
+    var goal = state.settings.dailyGoalMinutes || 0;
     if(!vals.some(function(v){ return v>0; })){
       host.innerHTML = '<div class="trend-empty">この期間の学習記録はまだありません</div>';
       return;
@@ -1389,7 +1397,7 @@
         if(confirm('現在のデータを読み込んだバックアップで上書きします。よろしいですか？')){
           parsed.workbooks = parsed.workbooks || [];
           parsed.workLogs = parsed.workLogs || [];
-          parsed.settings = parsed.settings || {dailyGoalMinutes:90, sound:true};
+          parsed.settings = parsed.settings || {dailyGoalMinutes:null, sound:true};
           state = parsed;
           if(!state.selectedSubjectId || !getSubject(state.selectedSubjectId)){
             state.selectedSubjectId = state.subjects[0] ? state.subjects[0].id : null;
@@ -1670,11 +1678,19 @@
     els.timerDisplay.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
     if(els.timerTotalVal) els.timerTotalVal.textContent = formatHMS(todayTotalSecondsLive());
     if(els.timerGoalVal){
-      var goalSec = (state.settings.dailyGoalMinutes || 90) * 60;
-      var remainSec = goalSec - todayTotalSecondsLive();
-      var reached = remainSec <= 0;
-      els.timerGoalVal.textContent = reached ? '達成 🎉' : formatHMS(remainSec);
-      els.timerGoalVal.classList.toggle('goal-reached', reached);
+      var goalMin = state.settings.dailyGoalMinutes;
+      if(!goalMin){
+        els.timerGoalVal.textContent = '未設定';
+        els.timerGoalVal.classList.remove('goal-reached');
+        els.timerGoalVal.classList.add('goal-unset');
+      } else {
+        var goalSec = goalMin * 60;
+        var remainSec = goalSec - todayTotalSecondsLive();
+        var reached = remainSec <= 0;
+        els.timerGoalVal.textContent = reached ? '達成 🎉' : formatHMS(remainSec);
+        els.timerGoalVal.classList.toggle('goal-reached', reached);
+        els.timerGoalVal.classList.remove('goal-unset');
+      }
     }
     var barFill = document.getElementById('timerBarFill');
     if(barFill){

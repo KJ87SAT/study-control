@@ -243,6 +243,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .timer-display-goal{font-size:34px;color:var(--violet);}
 #timerPanel.running .timer-display-goal{color:var(--violet);}
 .timer-display-goal.goal-reached{color:var(--green);}
+.timer-display-goal.goal-unset{color:var(--text-faint);font-size:20px;}
 .timer-bar{height:8px;border-radius:5px;background:var(--border-lo);overflow:hidden;margin:2px 0 16px;}
 .timer-bar > i{
   display:block;height:100%;border-radius:5px;width:100%;
