@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STUDY CONTROL // 学習管制室</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="scanline"></div>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="eyebrow">Personal Study Ops</div>
+      <h1>STUDY CONTROL</h1>
+      <div class="sub" id="dateLine">-- -- --</div>
+    </div>
+
+    <div class="streak-box">
+      <div class="streak-flame">🔥</div>
+      <div>
+        <div class="streak-num"><span id="streakNum">0</span> DAYS</div>
+        <div class="streak-label">Current Streak</div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label" style="margin-bottom:10px;">Subjects <span id="subjectCount">0</span></div>
+      <div id="subjectList"></div>
+      <button class="add-subject-btn" id="addSubjectBtn" style="margin-top:8px;">+ 科目を追加</button>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="ghost-btn" id="dailyGoalBtn">▸ 1日の目標を設定</button>
+      <button class="ghost-btn" id="soundToggleBtn">▸ 通知音: <span id="soundState">ON</span></button>
+      <button class="ghost-btn" id="exportBtn">▸ データをバックアップ（書き出し）</button>
+      <button class="ghost-btn" id="importBtn">▸ バックアップを読み込む</button>
+      <input type="file" id="importFileInput" accept="application/json">
+      <button class="ghost-btn danger" id="resetBtn">▸ データをリセット</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <div class="clock">JST <b id="clockTime">--:--:--</b></div>
+        <button class="timer-status-badge" id="timerStatusBadge" title="タイマーパネルへ移動">
+          <span class="dot"></span>
+          <span class="tsb-text" id="timerStatusText">稼働中</span>
+        </button>
+      </div>
+      <div class="level-badge">
+        <div class="lv-num" id="lvNum">Lv.1</div>
+        <div>
+          <div class="lv-text">TOTAL XP <span id="xpTotal">0</span></div>
+          <div class="xp-bar"><i id="xpBarFill" style="width:0%"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabnav" id="tabNav">
+      <button class="tab-btn active" data-tab="dashboard">ダッシュボード</button>
+      <button class="tab-btn" data-tab="workbook">ワーク管理<span class="tab-badge" id="wbBadge" style="display:none;">0</span></button>
+      <button class="tab-btn" data-tab="subjects">科目とタスク</button>
+      <button class="tab-btn" data-tab="stats">統計・履歴</button>
+    </div>
+    <div class="tabnav-hint">ショートカット: <b>1〜4</b> でタブ切替 ・ <b>Enter</b> で保存 ・ <b>Esc</b> で閉じる</div>
+
+    <!-- ================= DASHBOARD ================= -->
+    <section class="tab-pane active" id="pane-dashboard">
+      <div class="grid">
+        <!-- GAUGE -->
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Daily Mission <b>本日の進捗</b></div>
+          </div>
+          <div class="gauge-wrap">
+            <svg width="176" height="176" viewBox="0 0 176 176" id="gaugeSvg">
+              <circle cx="88" cy="88" r="78" fill="none" stroke="#1B2130" stroke-width="10"/>
+              <circle cx="88" cy="88" r="78" fill="none" stroke="url(#gaugeGrad)" stroke-width="10"
+                stroke-linecap="round" id="gaugeArc" stroke-dasharray="490" stroke-dashoffset="490"
+                transform="rotate(-90 88 88)"/>
+              <defs>
+                <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#FFB454"/>
+                  <stop offset="100%" stop-color="#5EEAD4"/>
+                </linearGradient>
+              </defs>
+              <text x="88" y="82" text-anchor="middle" id="gaugeCenterPct" font-size="28" fill="#E8ECF2">0%</text>
+              <text x="88" y="102" text-anchor="middle" id="gaugeCenterSub" font-size="10" fill="#7C8695">0 / 0 分</text>
+            </svg>
+            <div class="gauge-readout">
+              <div class="readout-item">
+                <div class="num" id="todayMinNum" style="color:var(--amber);">0分</div>
+                <div class="lbl">Today</div>
+              </div>
+              <div class="readout-item">
+                <div class="num" id="weekMinNum" style="color:var(--cyan);">0分</div>
+                <div class="lbl">This Week</div>
+              </div>
+              <div class="readout-item">
+                <div class="num" id="totalMinNum">0分</div>
+                <div class="lbl">All Time</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TIMER -->
+        <div class="panel" id="timerPanel">
+          <div class="panel-head">
+            <div class="panel-title">Focus Engine <b>タイマー</b></div>
+          </div>
+          <select class="timer-select" id="timerSubjectSelect"></select>
+          <div class="timer-display" id="timerDisplay">00:00</div>
+          <div class="timer-bar"><i id="timerBarFill"></i></div>
+          <div class="hint" id="timerHint" style="text-align:center;margin:-2px 0 12px;">科目を選んでSTART、または一覧の「▶開始」から時間を指定して開始できます。</div>
+          <div class="timer-btns">
+            <button class="tbtn primary" id="timerStartBtn">▶ START</button>
+            <button class="tbtn" id="timerResetBtn">↺ RESET</button>
+            <button class="tbtn" id="timerDoneBtn">✓ 完了として記録</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title">Mission Queue <b>本日やるべきこと</b></div>
+        </div>
+        <div class="mission-list" id="missionList"></div>
+        <div class="mission-quick-add">
+          <select id="missionQuickSubject"></select>
+          <input type="text" id="missionQuickInput" placeholder="今日やることをサクッと追加...">
+          <button id="missionQuickAddBtn">追加</button>
+        </div>
+        <div class="hint" style="margin-top:8px;">所要時間は自動で見積もります。分数を指定したい場合は「科目とタスク」タブから追加してください。</div>
+      </div>
+    </section>
+
+    <!-- ================= WORKBOOK ================= -->
+    <section class="tab-pane" id="pane-workbook">
+      <div class="wb-toolbar">
+        <div>
+          <h2>ワーク管理</h2>
+          <div class="sub">問題集・参考書ごとにページ進捗と結果を管理します</div>
+        </div>
+        <button class="panel-action primary" id="addWorkbookBtn">+ ワークを登録</button>
+      </div>
+      <div class="wb-grid" id="workbookGrid"></div>
+    </section>
+
+    <!-- ================= SUBJECTS & TASKS ================= -->
+    <section class="tab-pane" id="pane-subjects">
+      <div class="grid">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Subjects <b>科目の管理</b></div>
+            <button class="panel-action" id="addSubjectBtn2">+ 追加</button>
+          </div>
+          <div class="subj-mgmt-list" id="subjectMgmtList"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Task Queue <b id="taskSubjectName">-</b></div>
+          </div>
+          <div class="task-list" id="taskList"></div>
+          <div class="task-add-row">
+            <input type="text" id="taskInput" placeholder="やることを追加...">
+            <button id="taskAddBtn">追加</button>
+          </div>
+          <div class="chip-row" id="taskMinsChipRow">
+            <span class="chip-row-label">所要時間:</span>
+            <button type="button" class="chip" data-taskmin="15">15分</button>
+            <button type="button" class="chip active" data-taskmin="25">25分</button>
+            <button type="button" class="chip" data-taskmin="45">45分</button>
+            <button type="button" class="chip" data-taskmin="60">60分</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= STATS ================= -->
+    <section class="tab-pane" id="pane-stats">
+      <div class="grid">
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">7-Day Log <b>週間ログ（学習時間）</b></div>
+          </div>
+          <div class="week-bars" id="weekBars"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head">
+            <div class="panel-title">Streak Report <b>継続日数</b></div>
+          </div>
+          <div class="gauge-readout" style="flex-direction:row;gap:26px;">
+            <div class="readout-item">
+              <div class="num" id="statCurStreak" style="color:var(--amber);">0日</div>
+              <div class="lbl">現在の連続日数</div>
+            </div>
+            <div class="readout-item">
+              <div class="num" id="statLongStreak" style="color:var(--cyan);">0日</div>
+              <div class="lbl">最長記録</div>
+            </div>
+            <div class="readout-item">
+              <div class="num" id="statTotalPages">0p</div>
+              <div class="lbl">総ページ消化</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel trend-wrap" style="grid-column:1/-1;">
+          <div class="panel-head">
+            <div class="panel-title">Trend <b>学習時間の推移</b></div>
+            <div class="seg" id="trendRangeSeg">
+              <button type="button" class="seg-btn active" data-trendrange="14">14日</button>
+              <button type="button" class="seg-btn" data-trendrange="30">30日</button>
+            </div>
+          </div>
+          <div id="trendChartHost"></div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel" style="grid-column:1/-1;">
+          <div class="panel-head">
+            <div class="panel-title">By Subject <b>科目別 学習時間</b></div>
+            <div class="seg" id="subjBreakdownRange">
+              <button type="button" class="seg-btn active" data-range="today">今日</button>
+              <button type="button" class="seg-btn" data-range="week">今週</button>
+              <button type="button" class="seg-btn" data-range="all">累計</button>
+            </div>
+          </div>
+          <div class="subj-breakdown-list" id="subjBreakdownList"></div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel heatmap-panel">
+          <div class="panel-head">
+            <div class="panel-title">Activity Log <b>過去12週間</b></div>
+          </div>
+          <div class="heatmap-scroll">
+            <div class="heatmap-grid" id="heatmapGrid"></div>
+          </div>
+          <div class="hm-legend">
+            <span>少</span>
+            <div class="hm-cell" style="background:#1B2130;"></div>
+            <div class="hm-cell" style="background:#5C4423;"></div>
+            <div class="hm-cell" style="background:#8A6A3C;"></div>
+            <div class="hm-cell" style="background:#FFB454;"></div>
+            <div class="hm-cell" style="background:#5EEAD4;"></div>
+            <span>多</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="panel" style="grid-column:1/-1;">
+          <div class="panel-head">
+            <div class="panel-title">History <b>ワーク結果の履歴（直近30件）</b></div>
+          </div>
+          <div class="log-list" id="fullLogList"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Subject Modal (add / edit) -->
+<div class="modal-overlay" id="subjectModal">
+  <div class="modal">
+    <h3 id="subjectModalTitle">科目を追加</h3>
+    <div class="field">
+      <label>科目名</label>
+      <input type="text" id="subjectNameInput" placeholder="例: 憲法">
+    </div>
+    <div class="field">
+      <label>1日の目標時間（分）</label>
+      <div class="stepper">
+        <button type="button" data-step="-5">−</button>
+        <input type="number" id="subjectGoalInput" value="30" min="5" step="5">
+        <button type="button" data-step="5">+</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>カラー</label>
+      <div class="color-row" id="colorRow"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel" id="subjectCancelBtn">キャンセル</button>
+      <button class="save" id="subjectSaveBtn">保存</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- Workbook Modal (add / edit) -->
+<div class="modal-overlay" id="workbookModal">
+  <div class="modal">
+    <h3 id="workbookModalTitle">ワークを登録</h3>
+    <div class="field">
+      <label>ワーク名</label>
+      <input type="text" id="wbNameInput" placeholder="例: システム英単語">
+    </div>
+    <div class="field">
+      <label>関連する科目（任意）</label>
+      <select id="wbSubjectSelect"><option value="">科目なし</option></select>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label>総ページ数</label>
+        <div class="stepper">
+          <button type="button" data-step="-10">−</button>
+          <input type="number" id="wbTotalPagesInput" value="100" min="1" step="1">
+          <button type="button" data-step="10">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>現在のページ</label>
+        <div class="stepper">
+          <button type="button" data-step="-1">−</button>
+          <input type="number" id="wbCurrentPageInput" value="0" min="0" step="1">
+          <button type="button" data-step="1">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>カラー</label>
+      <div class="color-row" id="wbColorRow"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel" id="wbCancelBtn">キャンセル</button>
+      <button class="save" id="wbSaveBtn">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Today's plan modal -->
+<div class="modal-overlay" id="planModal">
+  <div class="modal">
+    <h3>今日の計画を設定</h3>
+    <div class="field">
+      <label id="planWbLabel">ワーク</label>
+      <div class="hint" id="planRemainingHint" style="margin-top:-6px;margin-bottom:10px;"></div>
+    </div>
+    <div class="field">
+      <label>今日やるページ数</label>
+      <div class="stepper">
+        <button type="button" data-step="-1">−</button>
+        <input type="number" id="planPagesInput" value="5" min="1" step="1">
+        <button type="button" data-step="1">+</button>
+      </div>
+      <div class="chip-row" id="planChipRow">
+        <button type="button" class="chip" data-planmodal-amount="5">+5</button>
+        <button type="button" class="chip" data-planmodal-amount="10">+10</button>
+        <button type="button" class="chip" data-planmodal-amount="all">残り全部</button>
+      </div>
+      <div class="hint" id="planCarryHint"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel" id="planCancelBtn">キャンセル</button>
+      <button class="save" id="planSaveBtn">計画を確定</button>
+    </div>
+  </div>
+</div>
+
+<!-- Result input modal -->
+<div class="modal-overlay" id="resultModal">
+  <div class="modal">
+    <h3>結果を入力</h3>
+    <div class="field">
+      <div class="hint" id="resultPlanInfo" style="margin-bottom:2px;"></div>
+    </div>
+    <div class="field">
+      <label>進み具合</label>
+      <div class="status-choice-row" id="resultStatusRow">
+        <button type="button" class="status-choice" data-status="done">完了<br>予定通り</button>
+        <button type="button" class="status-choice" data-status="partial">一部だけ<br>できた</button>
+        <button type="button" class="status-choice" data-status="skipped">できなかった</button>
+      </div>
+    </div>
+    <div class="field" id="resultActualField" style="display:none;">
+      <label>実際に進んだページ数</label>
+      <div class="stepper">
+        <button type="button" data-step="-1">−</button>
+        <input type="number" id="resultActualInput" value="0" min="0" step="1">
+        <button type="button" data-step="1">+</button>
+      </div>
+    </div>
+    <div class="field" id="resultMinutesField" style="display:none;">
+      <label>今回かかった学習時間（分）</label>
+      <div class="stepper">
+        <button type="button" data-step="-5">−</button>
+        <input type="number" id="resultMinutesInput" value="0" min="0" step="5">
+        <button type="button" data-step="5">+</button>
+      </div>
+      <div class="hint" style="margin-top:6px;">0分のままだと時間は記録されません（ページ・タスクの結果のみ記録）。</div>
+    </div>
+    <div class="field">
+      <label>メモ（任意・できなかった理由など）</label>
+      <textarea id="resultNoteInput" placeholder="例: 体調不良のため／思ったより難しかった など"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel" id="resultCancelBtn">キャンセル</button>
+      <button class="save" id="resultSaveBtn">記録する</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quick minutes modal (used when logging time via "予定通り" one-click actions) -->
+<div class="modal-overlay" id="minutesModal">
+  <div class="modal">
+    <h3>学習時間を記録</h3>
+    <div class="field">
+      <div class="hint" id="minutesModalInfo"></div>
+    </div>
+    <div class="field">
+      <label>実際にかかった時間（分）</label>
+      <div class="stepper">
+        <button type="button" data-step="-5">−</button>
+        <input type="number" id="minutesModalInput" value="25" min="0" step="5">
+        <button type="button" data-step="5">+</button>
+      </div>
+      <div class="chip-row" id="minutesChipRow">
+        <button type="button" class="chip" data-minutes-amount="15">15分</button>
+        <button type="button" class="chip" data-minutes-amount="25">25分</button>
+        <button type="button" class="chip" data-minutes-amount="45">45分</button>
+        <button type="button" class="chip" data-minutes-amount="60">60分</button>
+      </div>
+      <div class="hint" style="margin-top:8px;">0分のままにすると時間は記録されず、結果のみ記録されます。</div>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel" id="minutesCancelBtn">キャンセル</button>
+      <button class="save" id="minutesSaveBtn">記録する</button>
+    </div>
+  </div>
+</div>
+
+<!-- Daily goal modal — the ONE place to set today's total study-time goal.
+     Shown automatically at the start of each day, and reused (with different
+     wording) when opened manually from the sidebar, so there's a single
+     consistent screen for this setting instead of two similar-looking ones. -->
+<div class="modal-overlay" id="dailyStartModal">
+  <div class="modal">
+    <h3 id="dailyStartTitle">今日は何分勉強しますか？</h3>
+    <div class="field">
+      <div class="hint" id="dailyStartHint">今日の学習目標を設定しましょう。日付が変わると（24:00以降）自動でリセットされ、また設定できます。</div>
+    </div>
+    <div class="field">
+      <label>今日の目標時間（分）</label>
+      <div class="stepper">
+        <button type="button" data-step="-10">−</button>
+        <input type="number" id="dailyStartInput" value="90" min="10" step="10">
+        <button type="button" data-step="10">+</button>
+      </div>
+      <div class="chip-row">
+        <button type="button" class="chip" data-dailystart-amount="30">30分</button>
+        <button type="button" class="chip" data-dailystart-amount="60">60分</button>
+        <button type="button" class="chip" data-dailystart-amount="90">90分</button>
+        <button type="button" class="chip" data-dailystart-amount="120">120分</button>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="cancel" id="dailyStartSkipBtn">あとで設定</button>
+      <button class="save" id="dailyStartSaveBtn">この目標で始める</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
