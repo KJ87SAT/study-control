@@ -1728,15 +1728,17 @@
   // START only makes sense once a subject exists to track. RESET and
   // "完了として記録" only make sense once the current segment has actually
   // accumulated some time (running, or paused with elapsed time) — pressing
-  // them against a fresh 00:00 clock has nothing to reset/record.
+  // them against a fresh 00:00 clock has nothing to reset/record. Rather
+  // than showing them grayed out, they're hidden entirely until they're
+  // actually actionable.
   function syncTimerButtons(){
     var startBtn = document.getElementById('timerStartBtn');
     var resetBtn = document.getElementById('timerResetBtn');
     var doneBtn = document.getElementById('timerDoneBtn');
     var hasElapsed = timerElapsedMs() > 0;
-    if(startBtn) startBtn.disabled = !state.subjects.length;
-    if(resetBtn) resetBtn.disabled = !hasElapsed;
-    if(doneBtn) doneBtn.disabled = !hasElapsed;
+    if(startBtn) startBtn.style.display = state.subjects.length ? '' : 'none';
+    if(resetBtn) resetBtn.style.display = hasElapsed ? '' : 'none';
+    if(doneBtn) doneBtn.style.display = hasElapsed ? '' : 'none';
   }
   // Themes the Focus Engine panel with the color of whichever subject is
   // currently being tracked, so it's visually obvious at a glance.
