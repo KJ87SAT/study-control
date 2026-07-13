@@ -1322,7 +1322,7 @@
   // it later, so there's exactly one screen for this setting, not two.
   var dailyStartModal = document.getElementById('dailyStartModal');
   function openDailyGoalModal(isAuto){
-    document.getElementById('dailyStartInput').value = state.settings.dailyGoalMinutes || 90;
+    document.getElementById('dailyStartInput').value = state.settings.dailyGoalMinutes || '';
     document.getElementById('dailyStartTitle').textContent = isAuto ? '今日は何分勉強しますか？' : '1日の目標時間を変更';
     document.getElementById('dailyStartHint').textContent = isAuto
       ? '今日の学習目標を設定しましょう。日付が変わると（24:00以降）自動でリセットされ、また設定できます。'
@@ -1350,7 +1350,12 @@
     });
   });
   document.getElementById('dailyStartSaveBtn').addEventListener('click', function(){
-    var v = parseInt(document.getElementById('dailyStartInput').value, 10) || 90;
+    var raw = document.getElementById('dailyStartInput').value;
+    var v = parseInt(raw, 10);
+    if(!v || v <= 0){
+      showToast('目標時間を分で入力してください');
+      return;
+    }
     state.settings.dailyGoalMinutes = v;
     state.settings.dailyGoalSetDate = todayStr();
     saveState();
