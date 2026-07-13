@@ -23,13 +23,9 @@
   }
 
   function defaultState(){
-    var subjEn = {id: uid(), name:'英単語', color: PALETTE[0], goalMinutes:30, tasks:[]};
-    var subjLaw = {id: uid(), name:'法律', color: PALETTE[1], goalMinutes:40, tasks:[]};
     return {
-      subjects: [subjEn, subjLaw],
-      workbooks: [
-        {id: uid(), name:'システム英単語', subjectId: subjEn.id, color: PALETTE[2], totalPages:400, currentPage:0, createdAt: todayStr()}
-      ],
+      subjects: [],
+      workbooks: [],
       workLogs: [], // {id, workbookId, date, plannedPages, startPage, endPage, status:'pending'|'done'|'partial'|'skipped', actualPages, note}
       sessions: [], // {id, subjectId, date, minutes}
       xp: 0,
