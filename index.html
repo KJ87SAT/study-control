@@ -119,12 +119,13 @@
           </div>
           <select class="timer-select" id="timerSubjectSelect"></select>
           <div class="timer-display" id="timerDisplay">00:00</div>
+          <div class="timer-total" id="timerTotalRow">本日の合計 <b id="timerTotalVal">00:00</b></div>
           <div class="timer-bar"><i id="timerBarFill"></i></div>
           <div class="hint" id="timerHint" style="text-align:center;margin:-2px 0 12px;">科目を選んでSTART、または一覧の「▶開始」から時間を指定して開始できます。</div>
           <div class="timer-btns">
             <button class="tbtn primary" id="timerStartBtn">▶ START</button>
-            <button class="tbtn" id="timerResetBtn">↺ RESET</button>
-            <button class="tbtn" id="timerDoneBtn">✓ 完了として記録</button>
+            <button class="tbtn" id="timerResetBtn" disabled>↺ RESET</button>
+            <button class="tbtn" id="timerDoneBtn" disabled>✓ 完了として記録</button>
           </div>
         </div>
       </div>

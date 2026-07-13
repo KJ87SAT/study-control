@@ -187,6 +187,7 @@
     totalMinNum: document.getElementById('totalMinNum'),
     timerSubjectSelect: document.getElementById('timerSubjectSelect'),
     timerDisplay: document.getElementById('timerDisplay'),
+    timerTotalVal: document.getElementById('timerTotalVal'),
     weekBars: document.getElementById('weekBars'),
     taskSubjectName: document.getElementById('taskSubjectName'),
     taskList: document.getElementById('taskList'),
@@ -1652,10 +1653,25 @@
     }catch(e){}
   }
 
+  // Today's total = whatever's already been recorded to sessions today,
+  // plus whatever the current (not-yet-recorded) segment has accumulated —
+  // so the total ticks up live in step with the current-session timer
+  // instead of only jumping when a session is finished.
+  function todayTotalSecondsLive(){
+    var recordedSec = minutesForDate(todayStr()) * 60;
+    return recordedSec + timerElapsedSecCurrent();
+  }
+  function formatHMS(totalSec){
+    totalSec = Math.max(0, Math.floor(totalSec));
+    var h = Math.floor(totalSec/3600), m = Math.floor((totalSec%3600)/60), s = totalSec%60;
+    if(h>0) return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    return String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  }
   function renderTimerDisplay(){
     var sec = timerFreeMode ? timerElapsedSecCurrent() : timerSecondsLeftCurrent();
     var m = Math.floor(sec/60), s = sec%60;
     els.timerDisplay.textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+    if(els.timerTotalVal) els.timerTotalVal.textContent = formatHMS(todayTotalSecondsLive());
     var barFill = document.getElementById('timerBarFill');
     if(barFill){
       if(timerFreeMode){
@@ -1703,10 +1719,24 @@
   // so it's never ambiguous which countdown is "the" one).
   function syncTimerLockState(){
     if(els.timerSubjectSelect) els.timerSubjectSelect.disabled = timerRunning;
+    syncTimerButtons();
     updateTimerStatusBadge();
     applyTimerColor();
     renderTasks();
     renderMissionPanel();
+  }
+  // START only makes sense once a subject exists to track. RESET and
+  // "完了として記録" only make sense once the current segment has actually
+  // accumulated some time (running, or paused with elapsed time) — pressing
+  // them against a fresh 00:00 clock has nothing to reset/record.
+  function syncTimerButtons(){
+    var startBtn = document.getElementById('timerStartBtn');
+    var resetBtn = document.getElementById('timerResetBtn');
+    var doneBtn = document.getElementById('timerDoneBtn');
+    var hasElapsed = timerElapsedMs() > 0;
+    if(startBtn) startBtn.disabled = !state.subjects.length;
+    if(resetBtn) resetBtn.disabled = !hasElapsed;
+    if(doneBtn) doneBtn.disabled = !hasElapsed;
   }
   // Themes the Focus Engine panel with the color of whichever subject is
   // currently being tracked, so it's visually obvious at a glance.

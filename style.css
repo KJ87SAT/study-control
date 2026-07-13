@@ -231,6 +231,13 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   color:var(--text);margin:6px 0 4px;
   font-variant-numeric:tabular-nums;
 }
+.timer-total{
+  font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);letter-spacing:.06em;
+  text-align:center;margin:0 0 10px;text-transform:uppercase;
+}
+.timer-total b{
+  color:var(--text-dim);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;margin-left:4px;
+}
 .timer-bar{height:8px;border-radius:5px;background:var(--border-lo);overflow:hidden;margin:2px 0 16px;}
 .timer-bar > i{
   display:block;height:100%;border-radius:5px;width:100%;
@@ -269,6 +276,8 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
 .tbtn.primary{background:var(--amber);color:#1a1200;border-color:var(--amber);font-weight:700;min-width:130px;}
 .tbtn.primary:hover{filter:brightness(1.08);}
 .tbtn:not(.primary):hover{border-color:var(--text-faint);color:var(--text);}
+.tbtn:disabled{opacity:.35;cursor:not-allowed;pointer-events:none;}
+.tbtn.primary:disabled{background:var(--panel-hi);color:var(--text-faint);border-color:var(--border);}
 
 /* ---- Mission panel ---- */
 .mission-list{display:flex;flex-direction:column;gap:8px;}
