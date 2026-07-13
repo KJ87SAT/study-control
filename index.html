@@ -118,11 +118,19 @@
             <div class="panel-title">Focus Engine <b>タイマー</b></div>
           </div>
           <select class="timer-select" id="timerSubjectSelect"></select>
-          <div class="timer-display" id="timerDisplay">00:00</div>
-          <div class="timer-total" id="timerTotalRow">本日の合計 <b id="timerTotalVal">00:00</b></div>
+          <div class="timer-readouts">
+            <div class="timer-readout">
+              <div class="timer-readout-label">現在のセッション</div>
+              <div class="timer-display" id="timerDisplay">00:00</div>
+            </div>
+            <div class="timer-readout">
+              <div class="timer-readout-label">本日の合計</div>
+              <div class="timer-display timer-display-total" id="timerTotalVal">00:00</div>
+            </div>
+          </div>
           <div class="timer-bar"><i id="timerBarFill"></i></div>
-          <div class="hint" id="timerHint" style="text-align:center;margin:-2px 0 12px;">科目を選んでSTART、または一覧の「▶開始」から時間を指定して開始できます。</div>
-          <div class="timer-btns">
+          <div class="hint" id="timerHint" style="text-align:center;margin:-2px 0 12px;">一覧の「▶開始」から科目やタスクを選んで開始できます。</div>
+          <div class="timer-btns" style="display:none;">
             <button class="tbtn primary" id="timerStartBtn">▶ START</button>
             <button class="tbtn" id="timerResetBtn" style="display:none;">↺ RESET</button>
             <button class="tbtn" id="timerDoneBtn" style="display:none;">✓ 完了として記録</button>

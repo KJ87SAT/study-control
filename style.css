@@ -231,13 +231,15 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   color:var(--text);margin:6px 0 4px;
   font-variant-numeric:tabular-nums;
 }
-.timer-total{
-  font-family:var(--font-mono);font-size:11.5px;color:var(--text-faint);letter-spacing:.06em;
-  text-align:center;margin:0 0 10px;text-transform:uppercase;
+.timer-readouts{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:2px;}
+.timer-readout{flex:1;min-width:130px;}
+.timer-readout .timer-display{margin:2px 0 0;}
+.timer-readout-label{
+  font-family:var(--font-mono);font-size:10px;color:var(--text-faint);letter-spacing:.1em;
+  text-transform:uppercase;text-align:center;
 }
-.timer-total b{
-  color:var(--text-dim);font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;margin-left:4px;
-}
+.timer-display-total{font-size:34px;color:var(--cyan);}
+#timerPanel.running .timer-display-total{color:var(--cyan);}
 .timer-bar{height:8px;border-radius:5px;background:var(--border-lo);overflow:hidden;margin:2px 0 16px;}
 .timer-bar > i{
   display:block;height:100%;border-radius:5px;width:100%;
